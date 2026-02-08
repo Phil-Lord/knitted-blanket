@@ -6,7 +6,7 @@ import { OrbitControls } from 'https://unpkg.com/three@0.122.0/examples/jsm/cont
 
 const clothMass = 1; // 1 kg in total
 const clothSize = 1; // 1 meter
-const clothParticlesX = 12; // number of horizontal particles in the cloth
+const clothParticlesX = 8; // number of horizontal particles in the cloth
 const clothParticlesY = 12; // number of vertical particles in the cloth
 const mass = (clothMass / clothParticlesX) * clothParticlesY;
 const restDistance = clothSize / clothParticlesX;
@@ -147,14 +147,55 @@ function initThree() {
     scene.add(directionalLight);
 
     // Cloth material
-    const clothTexture = new THREE.TextureLoader().load('dog.jpg');
-    clothTexture.wrapS = THREE.RepeatWrapping;
-    clothTexture.wrapT = THREE.RepeatWrapping;
-    clothTexture.anisotropy = 16;
-    clothTexture.encoding = THREE.sRGBEncoding;
+    const size = 512;
+    const canvas = document.createElement('canvas');
+    canvas.width = canvas.height = size;
+    const ctx = canvas.getContext('2d');
+
+    // Calculate grid cell size
+    const cols = 7;
+    const rows = 10;
+    const cellWidth = size / cols;
+    const cellHeight = size / rows;
+
+    // Draw colored squares with 3-color repeating pattern, offset each row by +1
+    const bluePalette = ['#f1c495', '#1d511e', '#317684'];
+    const brownPalette = ['#f1c495', '#3a7e3c', '#2b1a09'];
+    const brownsPalette = ['#916131', '#2b1a09'];
+    for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++) {
+            // Repeat 3-color pattern, offset by row
+            const colourIndex = (x + y) % 3;
+            ctx.fillStyle = bluePalette[colourIndex];
+            ctx.fillRect(x * cellWidth, y * cellHeight, cellWidth, cellHeight);
+        }
+    }
+
+    // Draw grid lines on top
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (let i = 0; i <= cols; i++) {
+        ctx.moveTo(i * cellWidth, 0);
+        ctx.lineTo(i * cellWidth, size);
+    }
+    for (let i = 0; i <= rows; i++) {
+        ctx.moveTo(0, i * cellHeight);
+        ctx.lineTo(size, i * cellHeight);
+    }
+    ctx.stroke();
+
+    // Create Three.js Texture
+    const texture = new THREE.CanvasTexture(canvas);
+
+    // const clothTexture = new THREE.TextureLoader().load('dog.jpg');
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.RepeatWrapping;
+    texture.anisotropy = 16;
+    texture.encoding = THREE.sRGBEncoding;
 
     const clothMaterial = new THREE.MeshPhongMaterial({
-        map: clothTexture,
+        map: texture,
         side: THREE.DoubleSide,
     });
 
