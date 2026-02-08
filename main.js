@@ -2,12 +2,7 @@
 
 import * as CANNON from 'cannon-es';
 import * as THREE from 'https://unpkg.com/three@0.122.0/build/three.module.js';
-import Stats from 'https://unpkg.com/three@0.122.0/examples/jsm/libs/stats.module.js';
 import { OrbitControls } from 'https://unpkg.com/three@0.122.0/examples/jsm/controls/OrbitControls.js';
-
-// Specify the simulation constants
-const timeStep = 1 / 60;
-let lastCallTime;
 
 const clothMass = 1; // 1 kg in total
 const clothSize = 1; // 1 meter
@@ -17,7 +12,6 @@ const mass = (clothMass / clothParticlesX) * clothParticlesY;
 const restDistance = clothSize / clothParticlesX;
 
 const sphereSize = 0.1;
-const movementRadius = 0.2;
 
 // Parametric function
 // https://threejs.org/docs/index.html#api/en/geometries/ParametricGeometry
@@ -32,7 +26,7 @@ function clothFunction(u, v, target) {
 }
 
 // three.js variables
-let camera, scene, renderer, stats;
+let camera, scene, renderer;
 let controls;
 let clothGeometry;
 let sphereMesh;
@@ -136,10 +130,6 @@ function initThree() {
 
     document.body.appendChild(renderer.domElement);
 
-    // Stats.js
-    stats = new Stats();
-    document.body.appendChild(stats.dom);
-
     // Orbit controls
     controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
@@ -196,12 +186,13 @@ function animate() {
     controls.update();
     updatePhysics();
     render();
-    stats.update();
 }
 
-// Step the physics world
 function updatePhysics() {
+    const timeStep = 1 / 60;
     const time = performance.now() / 1000;
+
+    let lastCallTime;
     if (!lastCallTime) {
         world.step(timeStep);
     } else {
@@ -225,6 +216,7 @@ function render() {
 
     // Move the ball in a circular motion
     const { time } = world;
+    const movementRadius = 0.2;
     sphereBody.position.set(movementRadius * Math.sin(time), 0, movementRadius * Math.cos(time));
 
     // Make the three.js ball follow the cannon.js one
