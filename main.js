@@ -11,10 +11,10 @@ let lastCallTime;
 
 const clothMass = 1; // 1 kg in total
 const clothSize = 1; // 1 meter
-const Nx = 12; // number of horizontal particles in the cloth
-const Ny = 12; // number of vertical particles in the cloth
-const mass = (clothMass / Nx) * Ny;
-const restDistance = clothSize / Nx;
+const clothParticlesX = 12; // number of horizontal particles in the cloth
+const clothParticlesY = 12; // number of vertical particles in the cloth
+const mass = (clothMass / clothParticlesX) * clothParticlesY;
+const restDistance = clothSize / clothParticlesX;
 
 const sphereSize = 0.1;
 const movementRadius = 0.2;
@@ -22,8 +22,8 @@ const movementRadius = 0.2;
 // Parametric function
 // https://threejs.org/docs/index.html#api/en/geometries/ParametricGeometry
 function clothFunction(u, v, target) {
-    const x = (u - 0.5) * restDistance * Nx;
-    const y = (v + 0.5) * restDistance * Ny;
+    const x = (u - 0.5) * restDistance * clothParticlesX;
+    const y = (v + 0.5) * restDistance * clothParticlesY;
     const z = 0;
 
     target.set(x, y, z);
@@ -80,20 +80,24 @@ function initCannon() {
     world.addBody(sphereBody);
 
     // Create cannon particles
-    for (let i = 0; i < Nx + 1; i++) {
+    for (let i = 0; i < clothParticlesX + 1; i++) {
         particles.push([]);
-        for (let j = 0; j < Ny + 1; j++) {
-            const index = j * (Nx + 1) + i;
+        for (let j = 0; j < clothParticlesY + 1; j++) {
+            const index = j * (clothParticlesX + 1) + i;
 
-            const point = clothFunction(i / (Nx + 1), j / (Ny + 1), new THREE.Vector3());
+            const point = clothFunction(
+                i / (clothParticlesX + 1),
+                j / (clothParticlesY + 1),
+                new THREE.Vector3(),
+            );
             const particle = new CANNON.Body({
                 // Fix in place the first row
-                mass: j === Ny ? 0 : mass,
+                mass: j === clothParticlesY ? 0 : mass,
             });
             particle.addShape(new CANNON.Particle());
             particle.linearDamping = 0.5;
-            particle.position.set(point.x, point.y - Ny * 0.9 * restDistance, point.z);
-            particle.velocity.set(0, 0, -0.1 * (Ny - j));
+            particle.position.set(point.x, point.y - clothParticlesY * 0.9 * restDistance, point.z);
+            particle.velocity.set(0, 0, -0.1 * (clothParticlesY - j));
 
             particles[i].push(particle);
             world.addBody(particle);
@@ -106,10 +110,10 @@ function initCannon() {
             new CANNON.DistanceConstraint(particles[i1][j1], particles[i2][j2], restDistance),
         );
     }
-    for (let i = 0; i < Nx + 1; i++) {
-        for (let j = 0; j < Ny + 1; j++) {
-            if (i < Nx) connect(i, j, i + 1, j);
-            if (j < Ny) connect(i, j, i, j + 1);
+    for (let i = 0; i < clothParticlesX + 1; i++) {
+        for (let j = 0; j < clothParticlesY + 1; j++) {
+            if (i < clothParticlesX) connect(i, j, i + 1, j);
+            if (j < clothParticlesY) connect(i, j, i, j + 1);
         }
     }
 }
@@ -165,7 +169,7 @@ function initThree() {
     });
 
     // Cloth geometry
-    clothGeometry = new THREE.ParametricGeometry(clothFunction, Nx, Ny);
+    clothGeometry = new THREE.ParametricGeometry(clothFunction, clothParticlesX, clothParticlesY);
 
     // Cloth mesh
     const clothMesh = new THREE.Mesh(clothGeometry, clothMaterial);
@@ -209,9 +213,9 @@ function updatePhysics() {
 
 function render() {
     // Make the three.js cloth follow the cannon.js particles
-    for (let i = 0; i < Nx + 1; i++) {
-        for (let j = 0; j < Ny + 1; j++) {
-            const index = j * (Nx + 1) + i;
+    for (let i = 0; i < clothParticlesX + 1; i++) {
+        for (let j = 0; j < clothParticlesY + 1; j++) {
+            const index = j * (clothParticlesX + 1) + i;
             clothGeometry.vertices[index].copy(particles[i][j].position);
         }
     }
