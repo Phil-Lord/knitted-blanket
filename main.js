@@ -1,3 +1,5 @@
+// https://github.com/pmndrs/cannon-es/blob/c72307cae66757e49b7f8471c16c1e1842789479/examples/threejs_cloth.html
+
 import * as CANNON from 'cannon-es';
 import * as THREE from 'https://unpkg.com/three@0.122.0/build/three.module.js';
 import Stats from 'https://unpkg.com/three@0.122.0/examples/jsm/libs/stats.module.js';
